@@ -1,0 +1,56 @@
+import Data.Hash
+
+data Op = Plus | Minus | Mult | Divide
+
+data ExprNode = VarNode String
+              | IntNode Int
+              | FloatNode Float
+              | StringNode String
+              | ListNode (List ExprNode)
+              | CallNode ExprNode ExprNode -- Represent call chains 'currying' style
+              | OpNode Op ExprNode ExprNode
+
+data NoVar : ExprNode -> Type where
+  NVIntNode : (e : ExprNode) -> 
+             (i:Int) -> (e = IntNode i) ->
+             NoVar e
+  NVFloatNode : (e : ExprNode) -> 
+             (i:Float) -> (e = FloatNode i) ->
+             NoVar e
+  NVStringNode : (e : ExprNode) -> 
+             (i:String) -> (e = StringNode i) ->
+             NoVar e
+  NVNilNode : (e : ExprNode) -> 
+             (e = ListNode []) ->
+             NoVar e
+  NVListNode : (e : ExprNode) -> (head : ExprNode) -> (rest : List ExprNode) -> 
+             (e = ListNode (head::rest)) -> 
+             NoVar head -> NoVar (ListNode rest) ->
+             NoVar e
+  NVOpNode : (e,e1,e2 : ExprNode) -> (op : Op) -> (e = OpNode op e1 e2) ->
+             NoVar e1 -> NoVar e2 ->
+             NoVar e
+  NVCallNode : (e,e1,e2 : ExprNode) -> (e = CallNode e1 e2) ->
+             NoVar e1 -> NoVar e2 ->
+             NoVar e
+
+
+thm_novar_ex1 : NoVar (OpNode Plus (IntNode 1) (IntNode 1))
+thm_novar_ex1 = ?prf_novar_ex1
+{-
+Vars : Type
+Vars = String -> ExprNode 
+
+eval : Vars -> ExprNode -> ExprNode
+eval vars (VarNode str) = vars str
+eval vars (LitNode f) = f
+eval vars (OpNode op e1 e2) = evalOp op (eval vars e1) (eval vars e2)
+eval vars (OpNode op e1 e2) = evalOp op (eval vars e1) (eval vars e2)
+
+Equiv : ExprNode -> ExprNode -> Type
+Equiv e1 e2 = (vars : Vars) -> (eval vars e1 = eval vars e2)
+
+
+main : IO ()
+main = putStrLn "Hello World!" 
+-}
