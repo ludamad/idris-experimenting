@@ -1,0 +1,42 @@
+module Main
+
+
+data Box : (datT, retT : Type) -> Type where
+  BPut   : (d : datT) -> 
+           (r : retT) -> 
+           Box datT retT
+  BApply : (preT : Type) -> 
+           (succ : (datT -> preT -> Pair datT retT)) -> 
+           Box datT retT
+
+instance Functor (Box dT) where
+  map f (BPut d r)      = (BPut d (f r))
+  map f (BApply pT succ)   = BApply pT succ'
+    where succ' d a with (succ d a) | (d', b) = (d', f b)
+
+instance Applicative (Box dT) where
+  (BPut d f)      <$> (BPut d2 r)      = (BPut d (f r))
+  (BPut d f)      <$> (BApply pT succ) = (BApply pT succ')
+    where succ' d a with (succ d a) | (d', b) = (d, f b)
+  (BApply pT succ) <$> (BPut d' r)     = (BApply pT succ')
+    where succ' d f = succ d' (f r)
+  (BApply pT succ) <$> (BApply pT2 succ) = (BApply (boxf . boxf') (f r))
+  pure r = BApply id r
+
+{-
+instance Monad (Box datT) where
+  x >>= f with (x, (f $ boxVal x))
+   | MkPair (BPut d r)     (BPut d' r')     = (BPut d' r')
+   | MkPair (BPut d r)     (BApply mut' r') = (BPut (mut' d) r')
+   | MkPair (BApply mut r) (BPut d' r')     = (BPut d' r')
+   | MkPair (BApply mut r) (BApply mut' r') = (BApply (mut . mut') r')   
+
+total
+runBox : datT -> a -> (a -> Box datT b) -> (datT, b)
+runBox d x f with ((BPut d x) >>= f)
+  | (BPut d' r')    = (d', r')
+  | (BApply mut' r') = (mut' d, r') -- Should never happen!
+                       -}
+main : IO()
+main = putStrLn "Hellope"
+

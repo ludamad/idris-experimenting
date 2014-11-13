@@ -34,10 +34,10 @@ record ExprNode : Type where
        (expr : Expr) ->
        ExprNode
 
+data Literal = LitString String | LitInt Int | LitFloat Float
+
 data Expr    = VarNode String
-             | IntNode Int
-             | FloatNode Float
-             | StringNode String
+             | LitNode Literal
              | ListNode (List ExprNode)
              | OpNode Op ExprNode ExprNode
              | CallNode ExprNode (List ExprNode)
